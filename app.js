@@ -9,7 +9,7 @@
   const YEAR_MIN = 1900;
   const YEAR_MAX = 2200;
   const templates = [
-    { name: 'Verde clásico', src: 'modelos/modelo_1.png' },
+    { name: 'UCC oficial', src: 'modelos/modelo_1.png' },
     { name: 'Verde tierno', src: 'modelos/modelo_2.png' },
     { name: 'Verde y rojo', src: 'modelos/modelo_3.png' },
     { name: 'Tecnológico', src: 'modelos/modelo_4.png' }
@@ -35,7 +35,7 @@
   let toastTimer = null;
 
   const settings = {
-    color: '#172b25',
+    color: '#000000',
     opacity: 80,
     photoScale: 100,
     beautify: false,
@@ -264,33 +264,20 @@
     const h = Math.min(crop.h / rect.h * photo.naturalHeight, photo.naturalHeight - y);
     return { x, y, w, h };
   }
+  /** La fotografía se coloca directamente sobre la plantilla, sin marcos ni fondo. */
   function drawPortrait(g, x, y, w, h) {
+    if (!photo) return; // El modelo oficial deja el espacio vacío hasta cargar la foto.
+    const src = sourceRect();
+    if (!src || src.w <= 0 || src.h <= 0) return;
     g.save();
-    roundedRect(g, x - 3, y - 3, w + 6, h + 6, 9, '#fff', 'rgba(15,70,43,.19)', 1);
-    roundedRect(g, x, y, w, h, 7, '#e9eee9');
-    g.clip();
-    if (photo) {
-      const src = sourceRect();
-      if (src && src.w > 0 && src.h > 0) {
-        g.imageSmoothingEnabled = true;
-        g.imageSmoothingQuality = 'high';
-        g.filter = `brightness(${100 + brightness}%)`;
-        g.drawImage(photo, src.x, src.y, src.w, src.h, x, y, w, h);
-        if (settings.beautify) {
-          g.filter = `blur(0.55px) brightness(${100 + brightness}%)`;
-          g.globalAlpha = .12;
-          g.drawImage(photo, src.x, src.y, src.w, src.h, x, y, w, h);
-          g.globalAlpha = 1;
-        }
-        g.filter = 'none';
-      }
-    } else {
-      g.fillStyle = '#bed0c3';
-      g.beginPath(); g.arc(x + w / 2, y + h * .36, w * .2, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.ellipse(x + w / 2, y + h * .93, w * .37, h * .25, 0, Math.PI, 0); g.fill();
-      g.fillStyle = '#5e7c69'; g.font = '600 9px Arial'; g.textAlign = 'center';
-      g.fillText('SIN FOTO', x + w / 2, y + h - 9);
-      g.textAlign = 'left';
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = 'high';
+    g.filter = `brightness(${100 + brightness}%)`;
+    g.drawImage(photo, src.x, src.y, src.w, src.h, x, y, w, h);
+    if (settings.beautify) {
+      g.filter = `blur(0.55px) brightness(${100 + brightness}%)`;
+      g.globalAlpha = .12;
+      g.drawImage(photo, src.x, src.y, src.w, src.h, x, y, w, h);
     }
     g.restore();
   }
@@ -331,51 +318,80 @@
     g.fillText(content, x, y);
   }
 
+  /**
+   * Posiciones oficiales sobre un lienzo de 529 × 340, tomadas del editor original.
+   * El fondo ya contiene el escudo y los elementos gráficos UCC.
+   * Evitar tarjetas, fondos para texto, bordes y placeholders sobre el carnet.
+   */
+  const OFFICIAL = Object.freeze({
+    photoX: 15, photoY: 60, photoW: 115, photoH: 142,
+    fieldsX: 136, nameY: 60 + 142 * .16, careerY: 60 + 142 * .55,
+    shiftY: 60 + 142 * .95, headerX: WIDTH / 2, headerY: 38,
+    numberX: 15 + 115 / 2.5, numberY: 60 + 142 + 64,
+    campusX: WIDTH / 2.44, campusY: 325
+  });
+
+  /** Respeta el rótulo original de 16 px y limita a dos líneas cuando hay datos. */
+  function drawOfficialField(g, caption, value, x, baseline, maxWidth) {
+    const content = `${caption}${String(value || '').trim() ? ' ' + String(value).trim().toUpperCase() : ''}`;
+    const tokens = content.split(/\s+/).filter(Boolean);
+    g.font = 'bold 16px Arial, sans-serif';
+    const lines = [];
+    let line = '';
+    for (const token of tokens) {
+      const candidate = line ? line + ' ' + token : token;
+      if (g.measureText(candidate).width <= maxWidth || !line) line = candidate;
+      else { lines.push(line); line = token; }
+    }
+    if (line) lines.push(line);
+    if (!lines.length) return;
+    // No invadir el siguiente campo: máximo dos líneas por dato.
+    if (lines.length > 2) lines.splice(1, lines.length - 1, lines.slice(1).join(' '));
+    lines.forEach((part, index) => fitOneLine(g, part, x, baseline + index * 18, maxWidth, 16, 12));
+  }
+
   function render(g, multiplier) {
     g.save();
     g.setTransform(multiplier, 0, 0, multiplier, 0, 0);
     g.clearRect(0, 0, WIDTH, HEIGHT);
-    g.fillStyle = '#fff'; g.fillRect(0, 0, WIDTH, HEIGHT);
+    g.fillStyle = '#fff';
+    g.fillRect(0, 0, WIDTH, HEIGHT);
     const template = templates[modelIndex].img;
     if (template && template.complete && template.naturalWidth > 0) {
-      g.save(); g.globalAlpha = settings.opacity / 100;
-      g.drawImage(template, 0, 0, WIDTH, HEIGHT); g.restore();
+      g.save();
+      g.globalAlpha = settings.opacity / 100;
+      g.drawImage(template, 0, 0, WIDTH, HEIGHT);
+      g.restore();
     }
-    roundedRect(g, 11, 11, 507, 39, 9, 'rgba(255,255,255,.87)');
     g.fillStyle = settings.color;
     g.textAlign = 'center';
-    fitOneLine(g, 'UNIVERSIDAD DE CIENCIAS COMERCIALES', WIDTH / 2, 36, 480, 18, 13);
+    fitOneLine(g, 'UNIVERSIDAD DE CIENCIAS COMERCIALES', OFFICIAL.headerX, OFFICIAL.headerY, 507, 21, 17);
     g.textAlign = 'left';
 
-    const photoW = 115 * settings.photoScale / 100;
-    const photoH = photoW / CROP_RATIO;
-    const photoX = 16;
-    const photoY = 69;
-    const textX = photoX + photoW + 17;
-    const textW = Math.min(388 - textX, 248);
-    roundedRect(g, textX - 9, 68, textW + 18, 164, 11, 'rgba(255,255,255,.88)');
-    drawPortrait(g, photoX, photoY, photoW, photoH);
+    // Imagen sin contorno; el tamaño máximo impide tapar las leyendas de la derecha.
+    const photoW = OFFICIAL.photoW * settings.photoScale / 100;
+    const photoH = OFFICIAL.photoH * settings.photoScale / 100;
+    drawPortrait(g, OFFICIAL.photoX, OFFICIAL.photoY, photoW, photoH);
 
-    drawLabel(g, 'NOMBRE COMPLETO', textX, 90);
     g.fillStyle = settings.color;
-    twoLines(g, fields.nombre.value, textX, 110, textW, 15);
-    drawLabel(g, 'CARRERA', textX, 153);
-    g.fillStyle = settings.color;
-    twoLines(g, fields.carrera.value, textX, 172, textW, 14);
-    drawLabel(g, 'TURNO', textX, 212);
-    g.fillStyle = settings.color;
-    fitOneLine(g, (fields.turno.value || '—').toUpperCase(), textX, 227, textW, 13, 10);
+    const fieldMaxWidth = 260; // Protege el escudo oficial situado a la derecha.
+    drawOfficialField(g, 'NOMBRE:', fields.nombre.value, OFFICIAL.fieldsX, OFFICIAL.nameY, fieldMaxWidth);
+    drawOfficialField(g, 'CARRERA:', fields.carrera.value, OFFICIAL.fieldsX, OFFICIAL.careerY, fieldMaxWidth);
+    drawOfficialField(g, 'TURNO:', fields.turno.value, OFFICIAL.fieldsX, OFFICIAL.shiftY, fieldMaxWidth);
 
-    roundedRect(g, 15, 243, 339, 47, 10, 'rgba(255,255,255,.86)');
-    drawLabel(g, 'NÚMERO DE CARNET', 26, 256);
+    // En el modelo oficial solo aparece el número cuando se introduce un valor.
+    const number = fields.carnet.value.trim().toUpperCase();
+    if (number) {
+      g.fillStyle = settings.color;
+      g.textAlign = 'left';
+      fitOneLine(g, number, OFFICIAL.numberX, OFFICIAL.numberY, 330, 38, 17);
+    }
+
     g.fillStyle = settings.color;
-    fitOneLine(g, (fields.carnet.value || '—').toUpperCase(), 26, 283, 314, 27, 13);
-    roundedRect(g, 15, 298, 339, 32, 9, 'rgba(255,255,255,.88)');
-    g.fillStyle = settings.color; g.textAlign = 'center';
+    g.textAlign = 'center';
     const campus = (fields.campus.value || 'LEÓN').trim().toUpperCase();
-    const footer = 'CAMPUS ' + campus + '  ·  ' + selectedYear();
-    fitOneLine(g, footer, 184.5, 320, 315, 15, 10, '700');
-    g.textAlign = 'left';
+    const footer = `CAMPUS – ${campus} ${selectedYear()}`;
+    fitOneLine(g, footer, OFFICIAL.campusX, OFFICIAL.campusY, 322, 17, 12);
     g.restore();
   }
 
@@ -394,7 +410,6 @@
       button.append(img, span);
       button.addEventListener('click', () => {
         modelIndex = index;
-        prefWrite('model', modelIndex);
         refreshTemplateSelection();
         updatePreview();
       });
@@ -404,7 +419,8 @@
       model.img.onerror = () => toast(`No se encontró la imagen: ${model.src}. Mantén la carpeta «modelos».`);
       model.img.src = model.src;
     }
-    modelIndex = prefNumber('model', 0, 0, templates.length - 1);
+    // El modelo oficial siempre es el predeterminado, incluso con preferencias previas.
+    modelIndex = 0;
     refreshTemplateSelection();
   }
   function refreshTemplateSelection() {
@@ -514,12 +530,13 @@
     });
     applyTheme();
 
-    settings.color = prefRead('color') || settings.color;
+    // El modelo institucional inicia siempre con letras negras.
+    settings.color = '#000000';
     settings.opacity = prefNumber('opacity', 80, 30, 100);
-    settings.photoScale = prefNumber('photoScale', 100, 80, 118);
+    settings.photoScale = prefNumber('photoScale', 100, 80, 100);
     settings.beautify = prefRead('beautify') === 'true';
     settings.exportScale = prefNumber('exportScale', 2, 1, 3);
-    byId('textColor').value = /^#[\da-fA-F]{6}$/.test(settings.color) ? settings.color : '#172b25';
+    byId('textColor').value = /^#[\da-fA-F]{6}$/.test(settings.color) ? settings.color : '#000000';
     settings.color = byId('textColor').value;
     byId('backgroundOpacity').value = String(settings.opacity);
     byId('opacityValue').textContent = settings.opacity + ' %';
