@@ -37,7 +37,7 @@
         </div>
         <div class="control-header"><h3>Ajustes fotográficos</h3><button type="button" class="text-button" id="resetPhoto">Restablecer</button></div>
         <div class="setting-line"><label for="photoSize">Tamaño en el carnet</label><output id="photoSizeValue" for="photoSize">100 %</output></div>
-        <input type="range" id="photoSize" min="80" max="118" step="1" value="100">
+        <input type="range" id="photoSize" min="80" max="100" step="1" value="100">
         <div class="setting-line"><label>Brillo</label><output id="brightnessValue">0 %</output></div>
         <div class="button-pair"><button type="button" class="secondary" id="brightnessDown">− Reducir</button><button type="button" class="secondary" id="brightnessUp">＋ Aumentar</button></div>
         <label class="switch-line" for="beautify"><span><strong>Suavizado facial</strong><small>Aplica un retoque sutil a la foto</small></span><input type="checkbox" id="beautify" class="switch"></label>
@@ -56,7 +56,7 @@
         <div class="field"><label for="campus">Campus</label><input id="campus" type="text" maxlength="60" value="León" placeholder="Ej. León"></div>
         <div class="panel-divider"></div>
         <div class="control-header"><h3>Diseño y apariencia</h3></div>
-        <div class="setting-line"><label for="textColor">Color del texto</label><input id="textColor" type="color" value="#172b25" aria-label="Seleccionar color de texto"></div>
+        <div class="setting-line"><label for="textColor">Color del texto</label><input id="textColor" type="color" value="#000000" aria-label="Seleccionar color de texto"></div>
         <div class="setting-line"><label for="backgroundOpacity">Opacidad de la plantilla</label><output id="opacityValue" for="backgroundOpacity">80 %</output></div>
         <input id="backgroundOpacity" type="range" min="30" max="100" step="5" value="80">
         <div class="setting-line export-setting"><label for="exportScale">Calidad de descarga</label><select id="exportScale"><option value="1">Estándar · 1×</option><option value="2" selected>Alta · 2×</option><option value="3">Máxima · 3×</option></select></div>
@@ -66,7 +66,8 @@
       <section class="panel preview-panel" aria-labelledby="previewHeading">
         <div class="panel-heading"><span class="step">03</span><div><h2 id="previewHeading">Vista previa</h2><p>Resultado actualizado automáticamente</p></div><span class="live-indicator"><i></i> En vivo</span></div>
         <div class="preview-stage"><div class="preview-container"><canvas id="previewCanvas" width="529" height="340" role="img" aria-label="Vista previa del carnet UCC"></canvas></div></div>
-        <div class="template-heading"><h3>Plantilla del carnet</h3><span id="modelLabel" class="subtle-status">Verde clásico</span></div>
+        <p class="field-hint">La vista previa y los archivos descargados respetan las posiciones originales del carnet UCC, sin recuadros ni marcos añadidos.</p>
+        <div class="template-heading"><h3>Plantilla del carnet</h3><span id="modelLabel" class="subtle-status">UCC oficial</span></div>
         <div id="modelGrid" class="model-grid" aria-label="Seleccione una plantilla de carnet"></div>
         <div class="export-header"><h3>Exportar carnet</h3><span id="exportDimensions" class="subtle-status">1058 × 680 px</span></div>
         <div class="export-actions"><button id="downloadPNG" type="button" class="primary download-main">↓ Descargar PNG</button><button id="downloadBMP" type="button" class="secondary">↓ Descargar BMP</button><button id="printCard" type="button" class="secondary">▤ Imprimir</button></div>
