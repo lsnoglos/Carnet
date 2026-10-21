@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#116744">
+  <meta name="description" content="Editor local de carnets estudiantiles de la UCC, Campus León.">
+  <title>Sistema de Carnets | UCC</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand-icon" aria-hidden="true">UCC<span class="brand-dot"></span></div>
+      <div class="brand-copy">
+        <p class="eyebrow">Universidad de Ciencias Comerciales <span class="campus-separator">/</span> Campus León</p>
+        <h1>Sistema de Carnets <span class="edition">Edición 2.0</span></h1>
+        <p class="header-description">Diseña, ajusta e imprime carnets estudiantiles desde tu navegador.</p>
+      </div>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema visual" title="Cambiar tema visual"><span id="themeIcon" aria-hidden="true">◐</span><span id="themeLabel">Modo oscuro</span></button>
+    </header>
+
+    <main class="workspace" aria-label="Editor de carnets">
+      <section class="panel photo-panel" aria-labelledby="photoHeading">
+        <div class="panel-heading"><span class="step">01</span><div><h2 id="photoHeading">Fotografía</h2><p>Recorta y optimiza el retrato</p></div></div>
+        <label class="upload-zone" for="foto">
+          <span class="upload-symbol" aria-hidden="true">＋</span>
+          <span class="upload-main">Seleccionar fotografía</span>
+          <span class="upload-sub">JPG, PNG, WebP o imagen compatible</span>
+          <input id="foto" type="file" accept="image/png,image/jpeg,image/webp,image/*">
+        </label>
+        <div class="crop-card">
+          <div class="small-heading"><span>Encuadre</span><span id="photoStatus" class="subtle-status">Sin foto</span></div>
+          <canvas id="cropCanvas" width="400" height="400" tabindex="0" aria-label="Área de recorte de la foto. Arrastra para mover, usa las esquinas para ajustar, o las flechas para desplazar el recorte."></canvas>
+          <p class="help">Arrastra el marco para moverlo. Ajusta sus esquinas para ampliar o reducir el recorte.</p>
+        </div>
+        <div class="control-header"><h3>Ajustes fotográficos</h3><button type="button" class="text-button" id="resetPhoto">Restablecer</button></div>
+        <div class="setting-line"><label for="photoSize">Tamaño en el carnet</label><output id="photoSizeValue" for="photoSize">100 %</output></div>
+        <input type="range" id="photoSize" min="80" max="118" step="1" value="100">
+        <div class="setting-line"><label>Brillo</label><output id="brightnessValue">0 %</output></div>
+        <div class="button-pair"><button type="button" class="secondary" id="brightnessDown">− Reducir</button><button type="button" class="secondary" id="brightnessUp">＋ Aumentar</button></div>
+        <label class="switch-line" for="beautify"><span><strong>Suavizado facial</strong><small>Aplica un retoque sutil a la foto</small></span><input type="checkbox" id="beautify" class="switch"></label>
+      </section>
+
+      <section class="panel data-panel" aria-labelledby="dataHeading">
+        <div class="panel-heading"><span class="step">02</span><div><h2 id="dataHeading">Datos del estudiante</h2><p>Información que aparecerá en el carnet</p></div></div>
+        <div class="field"><label for="carnet">Número de carnet</label><input id="carnet" type="text" autocomplete="off" placeholder="Ej. 2026-0001" maxlength="55"></div>
+        <div class="field"><label for="nombre">Nombre completo</label><input id="nombre" type="text" autocomplete="off" placeholder="Nombre y apellidos" maxlength="130"></div>
+        <div class="field"><label for="carrera">Carrera</label><input id="carrera" type="text" autocomplete="off" placeholder="Ej. Ingeniería de Sistemas" maxlength="130"></div>
+        <div class="two-fields">
+          <div class="field"><label for="turno">Turno</label><input id="turno" type="text" autocomplete="off" placeholder="Ej. Sabatino" maxlength="55"></div>
+          <div class="field"><label for="anio">Año del carnet</label><input id="anio" type="number" inputmode="numeric" min="1900" max="2200" step="1" list="aniosSugeridos" aria-describedby="anioAyuda"><datalist id="aniosSugeridos"></datalist></div>
+        </div>
+        <p class="field-hint" id="anioAyuda">Puedes seleccionar una sugerencia o escribir cualquier año entre 1900 y 2200. No se restablece al editar.</p>
+        <div class="field"><label for="campus">Campus</label><input id="campus" type="text" maxlength="60" value="León" placeholder="Ej. León"></div>
+        <div class="panel-divider"></div>
+        <div class="control-header"><h3>Diseño y apariencia</h3></div>
+        <div class="setting-line"><label for="textColor">Color del texto</label><input id="textColor" type="color" value="#172b25" aria-label="Seleccionar color de texto"></div>
+        <div class="setting-line"><label for="backgroundOpacity">Opacidad de la plantilla</label><output id="opacityValue" for="backgroundOpacity">80 %</output></div>
+        <input id="backgroundOpacity" type="range" min="30" max="100" step="5" value="80">
+        <div class="setting-line export-setting"><label for="exportScale">Calidad de descarga</label><select id="exportScale"><option value="1">Estándar · 1×</option><option value="2" selected>Alta · 2×</option><option value="3">Máxima · 3×</option></select></div>
+        <p class="privacy-note">Los datos y fotografías se procesan en este dispositivo; no se envían a ningún servidor.</p>
+      </section>
+
+      <section class="panel preview-panel" aria-labelledby="previewHeading">
+        <div class="panel-heading"><span class="step">03</span><div><h2 id="previewHeading">Vista previa</h2><p>Resultado actualizado automáticamente</p></div><span class="live-indicator"><i></i> En vivo</span></div>
+        <div class="preview-stage"><div class="preview-container"><canvas id="previewCanvas" width="529" height="340" role="img" aria-label="Vista previa del carnet UCC"></canvas></div></div>
+        <div class="template-heading"><h3>Plantilla del carnet</h3><span id="modelLabel" class="subtle-status">Verde clásico</span></div>
+        <div id="modelGrid" class="model-grid" aria-label="Seleccione una plantilla de carnet"></div>
+        <div class="export-header"><h3>Exportar carnet</h3><span id="exportDimensions" class="subtle-status">1058 × 680 px</span></div>
+        <div class="export-actions"><button id="downloadPNG" type="button" class="primary download-main">↓ Descargar PNG</button><button id="downloadBMP" type="button" class="secondary">↓ Descargar BMP</button><button id="printCard" type="button" class="secondary">▤ Imprimir</button></div>
+        <div class="print-note">Al imprimir, utiliza escala 100 %, sin márgenes ni encabezados o pies de página del navegador. Tamaño ID-1 aproximado: 85,6 × 54 mm.</div>
+      </section>
+    </main>
+    <footer class="app-footer"><span>UCC · Sistema local de carnets</span><span>Cuatro modelos originales · Compatible con uso sin conexión</span></footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
